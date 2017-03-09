@@ -121,24 +121,30 @@ def main():
     #select menu
     driver.open('https://contactform7.com/checkboxes-radio-buttons-and-menus/')
     driver.find(attribute = Attribute('class', 'wpcf7-form-control wpcf7-submit'))[0].hover() #scroll target elements in sight
-    driver.find(attribute = Attribute('value', 'China'))[0].click()
-    driver.find(attribute = Attribute('value', 'India'))[0].click()
-    driver.find(attribute = Attribute('value', 'San Marino'))[0].click()
-    print driver.find(attribute = Attribute('value', 'China'))[0].isselect()
-    print driver.find(attribute = Attribute('value', 'India'))[0].isselect()
-    print driver.find(attribute = Attribute('value', 'San Marino'))[0].isselect()
-    driver.find(attribute = Attribute('value', 'China'))[0].click()
-    driver.find(attribute = Attribute('value', 'India'))[0].click()
-    driver.find(attribute = Attribute('value', 'San Marino'))[0].click()
-    print driver.find(attribute = Attribute('value', 'China'))[0].isselect()
-    print driver.find(attribute = Attribute('value', 'India'))[0].isselect()
-    print driver.find(attribute = Attribute('value', 'San Marino'))[0].isselect()
-    driver.find(attribute = Attribute('value', 'Football'))[0].click()
-    driver.find(attribute = Attribute('value', 'Tennis'))[0].click()
-    driver.find(attribute = Attribute('value', 'Pole-vault'))[0].click()
-    print driver.find(attribute = Attribute('value', 'Football'))[0].isselect()
-    print driver.find(attribute = Attribute('value', 'Tennis'))[0].isselect()
-    print driver.find(attribute = Attribute('value', 'Pole-vault'))[0].isselect()
+    china = driver.find(attribute = Attribute('value', 'China'))[0]
+    india = driver.find(attribute = Attribute('value', 'India'))[0]
+    sanmario = driver.find(attribute = Attribute('value', 'San Marino'))[0]
+    china.click()
+    india.click()
+    sanmario.click()
+    print china.isselect()
+    print india.isselect()
+    print sanmario.isselect()
+    china.click()
+    india.click()
+    sanmario.click()
+    print china.isselect()
+    print india.isselect()
+    print sanmario.isselect()
+    football = driver.find(attribute = Attribute('value', 'Football'))[0]
+    tennis = driver.find(attribute = Attribute('value', 'Tennis'))[0]
+    polevault = driver.find(attribute = Attribute('value', 'Pole-vault'))[0]
+    football.click()
+    tennis.click()
+    polevault.click()
+    print football.isselect()
+    print tennis.isselect()
+    print polevault.isselect()
     driver.find(attribute = Attribute('class', 'wpcf7-form-control wpcf7-select wpcf7-validates-as-required'))[0].click()
     if driver.name == 'ff':
         driver.find(attribute = Attribute('class', 'wpcf7-form-control wpcf7-select wpcf7-validates-as-required'))[0].find(text = Text('Opera'))[0].click(1)
