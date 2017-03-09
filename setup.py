@@ -1,9 +1,9 @@
 #-*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-import setuptools
+import distutils.core
 
-setuptools.setup(
+distutils.core.setup(
     name = 'seleniumpc',
     version = '0.0.1',
     packages = ['seleniumpc'],
