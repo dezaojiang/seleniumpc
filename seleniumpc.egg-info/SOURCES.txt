@@ -1,0 +1,8 @@
+setup.py
+seleniumpc/__init__.py
+seleniumpc/seleniumpc.py
+seleniumpc.egg-info/PKG-INFO
+seleniumpc.egg-info/SOURCES.txt
+seleniumpc.egg-info/dependency_links.txt
+seleniumpc.egg-info/requires.txt
+seleniumpc.egg-info/top_level.txt
