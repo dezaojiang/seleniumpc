@@ -773,16 +773,21 @@ class Element(object):
                 selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).click_and_hold(on_element = None).release(on_element = None).perform()
 
             if self._driver._name == 'ie':
+                #ie treats HTML prompt and download dialog as Alerts
                 try:
                     if len(self._driver._driver.window_handles) > number:
                         self._driver._driver._switch_to.window(window_name = self._driver._driver.window_handles[-1])
 
                         self._driver._driver.maximize_window()
+                #while an Alert is activated, WebDriver.window_handles() would raise UnexpectedAlertPresentException
                 except selenium.common.exceptions.UnexpectedAlertPresentException:
                     pass
+                #while an Alert is activated, WebDriver.current_window_handle() would raise NoSuchWindowException
                 except selenium.common.exceptions.NoSuchWindowException:
                     pass
+                #the moment HTML prompt pops up/download dialog pops up/file has been downloaded and being moved from temp folder to destination folder, the Alert is activated
             elif len(self._driver._driver.window_handles) > number:
+                #chrome & ff treat HTML prompt and download dialog as normal windows
                 self._driver._driver._switch_to.window(window_name = self._driver._driver.window_handles[-1])
 
             self._driver._log.effect(effect = 'mouse click')

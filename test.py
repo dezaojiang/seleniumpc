@@ -18,7 +18,7 @@ def main():
     driver.log = 'D:/seleniumpc/test/日志.log'
     driver.delay = 1.7
 
-    #firefox
+    #ff
 ##    driver.name = 'ff'
 ##    driver.browser = 'C:/Program Files (x86)/Mozilla Firefox/firefox.exe'
 ####    driver.proxy = '127.0.0.1:8787'
@@ -39,6 +39,7 @@ def main():
 
     #basic navigation
     driver.open('http://www.w3school.com.cn/tiy/t.asp?f=html_a_target_framename')
+    print driver.title()
     driver.switchframe(driver.find('iframe', Attribute('name', 'i'))[0])
     driver.back()
     time.sleep(1.7)
@@ -47,15 +48,19 @@ def main():
     driver.refresh()
     time.sleep(1.7)
     driver.find('*', [], Text('Preface'))[0].click()
+    print driver.title()
     driver.close()
     driver.switchframe(driver.find('iframe', Attribute('name', 'i'))[0])
     driver.find('*', [], Text('Chapter 1'))[0].click()
+    print driver.title()
     driver.close()
     driver.switchframe(driver.find('iframe', Attribute('name', 'i'))[0])
     driver.find('*', [], Text('Chapter 2'))[0].click()
+    print driver.title()
     driver.close()
     driver.switchframe(driver.find('iframe', Attribute('name', 'i'))[0])
     driver.find('*', [], Text('Chapter 3'))[0].click()
+    print driver.title()
     driver.close()
     time.sleep(7)
 
