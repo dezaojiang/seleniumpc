@@ -113,7 +113,7 @@ class Driver(object):
                 binary.command_line = self._option
                 profile = selenium.webdriver.firefox.firefox_profile.FirefoxProfile()
                 profile.default_preferences['browser.download.useDownloadDir'] = False #force ff to prompt for download
-##                profile.default_preferences['browser.link.open_newwindow'] = 3 #force ff to open new window in tab, but would crash test
+##                profile.default_preferences['browser.link.open_newwindow'] = 3 #force ff to open new window in tab, but would crash test run
                 self._driver = selenium.webdriver.firefox.webdriver.WebDriver(capabilities = capability, firefox_profile = profile, firefox_binary = binary)
             else:
 ##                self._driver = selenium.webdriver.ie.webdriver.WebDriver(executable_path = self._executor, capabilities = capability, log_level = 'trace') #debug
@@ -273,9 +273,9 @@ class Driver(object):
             self._log.error(error = e)
             raise e
 
-    def switchframe(self, element):
+    def framein(self, element):
         time.sleep(self._delay)
-        self._log.ignite(ignite = 'Driver.switchframe()')
+        self._log.ignite(ignite = 'Driver.framein()')
         try:
             if not isinstance(element, Element):
                 raise Exception('pass element as Element()!')
@@ -295,9 +295,9 @@ class Driver(object):
             self._log.error(error = e)
             raise e
 
-    def switchout(self):
+    def frameout(self):
         time.sleep(self._delay)
-        self._log.ignite(ignite = 'Driver.switchout()')
+        self._log.ignite(ignite = 'Driver.frameout()')
         try:
             self._log.clause(clause = 'none')
 
@@ -342,6 +342,7 @@ class Driver(object):
 
             action.perform()
 
+            #Element.click() would typically open a new window, and rarely Driver.type() would open a new window either
             if self._name == 'ie':
                 try:
                     if len(self._driver.window_handles) > number:
@@ -421,8 +422,10 @@ class Driver(object):
                 alert.send_keys(keysToSend = send.decode(encoding = 'UTF-8', errors = 'strict'))
 
             if accept is True:
+                #accept the Alert would automatically switch Driver from current Alert back to last window
                 alert.accept()
             else:
+                #accept the Alert would not switch Driver back to last window, thus add one more manual step to do the switch action
                 alert.dismiss()
                 self._driver._switch_to.window(window_name = self._driver.window_handles[-1])
 
@@ -772,6 +775,7 @@ class Element(object):
 ##                selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).click(on_element = None).perform()
                 selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).click_and_hold(on_element = None).release(on_element = None).perform()
 
+            #Element.click() would typically open a new window
             if self._driver._name == 'ie':
                 #ie treats HTML prompt and download dialog as Alerts
                 try:
@@ -925,6 +929,7 @@ class Element(object):
 
             self._element.send_keys(send.decode(encoding = 'UTF-8', errors = 'strict'))
 
+            #Element.click() would typically open a new window, and rarely Element.send() would open a new window either
             if self._driver._name == 'ie':
                 try:
                     if len(self._driver._driver.window_handles) > number:

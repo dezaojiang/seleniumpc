@@ -40,7 +40,7 @@ def main():
     #basic navigation
     driver.open('http://www.w3school.com.cn/tiy/t.asp?f=html_a_target_framename')
     print driver.title()
-    driver.switchframe(driver.find('iframe', Attribute('name', 'i'))[0])
+    driver.framein(driver.find('iframe', Attribute('name', 'i'))[0])
     driver.back()
     time.sleep(1.7)
     driver.forward()
@@ -50,15 +50,15 @@ def main():
     driver.find('*', [], Text('Preface'))[0].click()
     print driver.title()
     driver.close()
-    driver.switchframe(driver.find('iframe', Attribute('name', 'i'))[0])
+    driver.framein(driver.find('iframe', Attribute('name', 'i'))[0])
     driver.find('*', [], Text('Chapter 1'))[0].click()
     print driver.title()
     driver.close()
-    driver.switchframe(driver.find('iframe', Attribute('name', 'i'))[0])
+    driver.framein(driver.find('iframe', Attribute('name', 'i'))[0])
     driver.find('*', [], Text('Chapter 2'))[0].click()
     print driver.title()
     driver.close()
-    driver.switchframe(driver.find('iframe', Attribute('name', 'i'))[0])
+    driver.framein(driver.find('iframe', Attribute('name', 'i'))[0])
     driver.find('*', [], Text('Chapter 3'))[0].click()
     print driver.title()
     driver.close()
@@ -66,7 +66,7 @@ def main():
 
     #type input
     driver.open('http://www.w3school.com.cn/tiy/t.asp?f=html_form_submit')
-    driver.switchframe(driver.find('iframe', Attribute('name', 'i'))[0])
+    driver.framein(driver.find('iframe', Attribute('name', 'i'))[0])
     driver.find(attribute = Attribute('name', 'firstname'))[0].click()
     driver.modifierdown(Key.CONTROL)
     driver.type('a')
@@ -75,7 +75,7 @@ def main():
     driver.type(['abc', 123, Key.ADD])
     driver.find(attribute = Attribute('name', 'lastname'))[0].clear()
     driver.find(attribute = Attribute('name', 'lastname'))[0].send('输入汉字\n')
-    driver.switchout()
+    driver.frameout()
     time.sleep(7)
 
     #upload file, MAY BE INCOMPATIBLE WITH IE 8
