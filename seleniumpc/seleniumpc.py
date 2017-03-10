@@ -74,9 +74,9 @@ class Driver(object):
         return self._delay
     @delay.setter
     def delay(self, delay):
-        if not (type(delay) in [float, int] and delay > 0):
+        if not (type(delay) is int and delay > 0):
             raise Exception('pass delay as float(>0)/int(>0)!')
-        self._delay = delay
+        self._delay = delay / 1000
 
     def launch(self):
         if (self._name is None) or ((self._name == 'chrome') and (not ((self._executor is not None) and (self._browser is not None) and (self._log is not None)))):

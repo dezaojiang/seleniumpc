@@ -16,7 +16,7 @@ def main():
     driver.option = '--allow-outdated-plugins'
     driver.option = '--ignore-certificate-errors'
     driver.log = 'D:/seleniumpc/test/日志.log'
-    driver.delay = 1.7
+    driver.delay = 1700
 
     #ff
 ##    driver.name = 'ff'
@@ -24,7 +24,7 @@ def main():
 ####    driver.proxy = '127.0.0.1:8787'
 ##    driver.option = '-private-window'
 ##    driver.log = 'D:/seleniumpc/test/日志.log'
-##    driver.delay = 1.7
+##    driver.delay = 1700
 
     #ie
 ##    driver.name = 'ie'
@@ -32,7 +32,7 @@ def main():
 ####    driver.proxy = '127.0.0.1:8787'
 ##    driver.option = '-private'
 ##    driver.log = 'D:/seleniumpc/test/日志.log'
-##    driver.delay = 1.7
+##    driver.delay = 1700
 
     #launch driver
     driver.launch()
