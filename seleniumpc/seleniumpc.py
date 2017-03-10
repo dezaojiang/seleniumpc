@@ -393,7 +393,7 @@ class Driver(object):
             self._log.error(error = e)
             raise e
 
-    def alert(self, accept = True, send = None, timeout = 7):
+    def alert(self, accept = True, send = None, timeout = 7000):
         time.sleep(self._delay)
         self._log.ignite(ignite = 'Driver.alert()')
         try:
@@ -402,7 +402,7 @@ class Driver(object):
 
             self._log.clause(clause = 'accept = ' + str(accept) + ', send = ' + str(send) + ', timeout = ' + str(timeout))
 
-            end = time.time() + timeout
+            end = time.time() + timeout / 1000
             while time.time() < end:
                 try:
                     alert = self._driver._switch_to.alert
@@ -436,7 +436,7 @@ class Driver(object):
             self._log.error(error = e)
             raise e
 
-    def upload(self, path, timeout = 7):
+    def upload(self, path, timeout = 7000):
         time.sleep(self._delay)
         self._log.ignite(ignite = 'Driver.upload()')
         try:
@@ -452,7 +452,7 @@ class Driver(object):
             else:
                 title = u'选择要加载的文件'
 
-            autoit.win_wait(title = title, timeout = timeout)
+            autoit.win_wait(title = title, timeout = timeout / 1000)
             window = autoit.win_get_handle(title = title)
             edit = autoit.control_get_handle(hwnd = window, control = 'Edit1')
             button = autoit.control_get_handle(hwnd = window, control = 'Button1')
@@ -465,7 +465,7 @@ class Driver(object):
             self._log.error(error = e)
             raise e
 
-    def download(self, path, timeout = 7):
+    def download(self, path, timeout = 7000):
         time.sleep(self._delay)
         self._log.ignite(ignite = 'Driver.download()')
         try:
@@ -476,7 +476,7 @@ class Driver(object):
 
             if self._name == 'chrome':
                 title = u'另存为'
-                autoit.win_wait(title = title, timeout = timeout)
+                autoit.win_wait(title = title, timeout = timeout / 1000)
                 window = autoit.win_get_handle(title = title)
                 edit = autoit.control_get_handle(hwnd = window, control = 'Edit1')
                 combo = autoit.control_get_handle(hwnd = window, control = 'ComboBox2')
@@ -495,20 +495,20 @@ class Driver(object):
                 autoit.control_click_by_handle(hwnd = window, h_ctrl = button)
 
                 time.sleep(0.7)
-##                autoit.win_wait_close_by_handle(handle = window, timeout = timeout)
-                autoit.win_wait_close(title = title, timeout = timeout)
+##                autoit.win_wait_close_by_handle(handle = window, timeout = timeout / 1000)
+                autoit.win_wait_close(title = title, timeout = timeout / 1000)
 
                 self._log.effect(effect = 'download file')
 ##                self._driver._switch_to.window(window_name = self._handle)
 
             elif self._name == 'ff':
                 title = '[CLASS:MozillaDialogClass]'
-                autoit.win_wait_active(title = title, timeout = timeout)
+                autoit.win_wait_active(title = title, timeout = timeout / 1000)
                 time.sleep(0.7)
                 autoit.send(send_text = '{LEFT}{ALTDOWN}s{ALTUP}{ENTER}', mode = 0)
 
                 title = u'输入要保存的文件名…'
-                autoit.win_wait(title = title, timeout = timeout)
+                autoit.win_wait(title = title, timeout = timeout / 1000)
                 window = autoit.win_get_handle(title = title)
                 edit = autoit.control_get_handle(hwnd = window, control = 'Edit1')
                 button = autoit.control_get_handle(hwnd = window, control = 'Button1')
@@ -521,7 +521,7 @@ class Driver(object):
 
                 title1 = u'确认另存为'
                 try:
-                    autoit.win_wait(title = title1, timeout = timeout)
+                    autoit.win_wait(title = title1, timeout = timeout / 1000)
                 except:
                     pass
                 else:
@@ -531,22 +531,22 @@ class Driver(object):
                     autoit.control_click_by_handle(hwnd = window1, h_ctrl = button1)
 
                 time.sleep(0.7)
-##                autoit.win_wait_close_by_handle(handle = window, timeout = timeout)
-                autoit.win_wait_close(title = title, timeout = timeout)
+##                autoit.win_wait_close_by_handle(handle = window, timeout = timeout / 1000)
+                autoit.win_wait_close(title = title, timeout = timeout / 1000)
 
                 self._log.effect(effect = 'download file')
 ##                self._driver._switch_to.window(window_name = self._handle)
 
             else:
                 title = u'文件下载 - 安全警告'
-                autoit.win_wait(title = title, timeout = timeout)
+                autoit.win_wait(title = title, timeout = timeout / 1000)
                 window = autoit.win_get_handle(title = title)
                 button = autoit.control_get_handle(hwnd = window, control = 'Button2')
                 time.sleep(0.7)
                 autoit.control_click_by_handle(hwnd = window, h_ctrl = button)
 
                 title = u'另存为'
-                autoit.win_wait(title = title, timeout = timeout)
+                autoit.win_wait(title = title, timeout = timeout / 1000)
                 window = autoit.win_get_handle(title = title)
                 edit = autoit.control_get_handle(hwnd = window, control = 'Edit1')
                 button = autoit.control_get_handle(hwnd = window, control = 'Button1')
@@ -559,7 +559,7 @@ class Driver(object):
 
                 title1 = u'确认另存为'
                 try:
-                    autoit.win_wait(title = title1, timeout = timeout)
+                    autoit.win_wait(title = title1, timeout = timeout / 1000)
                 except:
                     pass
                 else:
@@ -569,13 +569,13 @@ class Driver(object):
                     autoit.control_click_by_handle(hwnd = window1, h_ctrl = button1)
 
 ##                title2 = '[ClASS:#32770]'
-##                autoit.win_wait_active(title = title2, timeout = timeout)
+##                autoit.win_wait_active(title = title2, timeout = timeout / 1000)
 ##                time.sleep(0.7)
 ##                autoit.send(send_text = '{ALTDOWN}{SPACE}{ALTUP}n', mode = 0)
 
                 time.sleep(0.7)
-##                autoit.win_wait_close_by_handle(handle = window, timeout = timeout)
-                autoit.win_wait_close(title = title, timeout = timeout)
+##                autoit.win_wait_close_by_handle(handle = window, timeout = timeout / 1000)
+                autoit.win_wait_close(title = title, timeout = timeout / 1000)
 
                 self._log.effect(effect = 'download file')
 ##                try:
@@ -948,7 +948,7 @@ class Element(object):
             self._driver._log.error(exception = e)
             raise e
 
-    def waitexist(self, tag = '*', attribute = list(), text = list(), timeout = 7):
+    def waitexist(self, tag = '*', attribute = list(), text = list(), timeout = 7000):
         time.sleep(self._driver._delay)
         self._driver._log.ignite(ignite = 'Element.waitexist()')
         try:
@@ -983,7 +983,7 @@ class Element(object):
 
             self._driver._log.clause(clause = 'xpath = ' + xpath)
 
-            end = time.time() + timeout
+            end = time.time() + timeout / 1000
             while time.time() < end:
                 try:
                     self._element.find_element_by_xpath(xpath = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
@@ -1000,7 +1000,7 @@ class Element(object):
             self._driver._log.error(error = e)
             raise e
 
-    def waitextinct(self, tag = '*', attribute = list(), text = list(), timeout = 7):
+    def waitextinct(self, tag = '*', attribute = list(), text = list(), timeout = 7000):
         time.sleep(self._driver._delay)
         self._driver._log.ignite(ignite = 'Element.waitextinct()')
         try:
@@ -1035,7 +1035,7 @@ class Element(object):
 
             self._driver._log.clause(clause = 'xpath = ' + xpath)
 
-            end = time.time() + timeout
+            end = time.time() + timeout / 1000
             while time.time() < end:
                 try:
                     self._element.find_element_by_xpath(xpath = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
