@@ -365,12 +365,24 @@ class Driver(object):
         time.sleep(self._delay)
         self._log.ignite(ignite = 'Driver.modifierdown()')
         try:
-            if not ((type(modifier) is unicode) and (modifier in selenium.webdriver.common.keys.Keys.__dict__.values())):
+            if not (((type(modifier) is list) and (len(modifier) > 0)) or ((type(modifier) is unicode) and (modifier in selenium.webdriver.common.keys.Keys.__dict__.values()))):
                 raise Exception('pass modifier as Key()!')
 
-            self._log.clause(clause = 'modifier = ' + modifier.encode(encoding = 'unicode-escape', errors = 'strict'))
+            if type(modifier) is not list:
+                modifier = [modifier]
 
-            selenium.webdriver.common.action_chains.ActionChains(driver = self._driver).key_down(value = modifier, element = None).perform()
+            action = selenium.webdriver.common.action_chains.ActionChains(driver = self._driver)
+            clause = ''
+            for i in modifier:
+                if not ((type(i) is unicode) and (i in selenium.webdriver.common.keys.Keys.__dict__.values())):
+                    raise Exception('pass modifier as list(Key())!')
+
+                action.key_down(value = i, element = None)
+                clause += i.encode(encoding = 'unicode-escape', errors = 'strict')
+
+            self._log.clause(clause = 'modifier = ' + clause)
+
+            action.perform()
 
             self._log.effect(effect = 'modifier down')
         except Exception as e:
@@ -381,12 +393,24 @@ class Driver(object):
         time.sleep(self._delay)
         self._log.ignite(ignite = 'Driver.modifierup()')
         try:
-            if not ((type(modifier) is unicode) and (modifier in selenium.webdriver.common.keys.Keys.__dict__.values())):
+            if not (((type(modifier) is list) and (len(modifier) > 0)) or ((type(modifier) is unicode) and (modifier in selenium.webdriver.common.keys.Keys.__dict__.values()))):
                 raise Exception('pass modifier as Key()!')
 
-            self._log.clause(clause = 'modifier = ' + modifier.encode(encoding = 'unicode-escape', errors = 'strict'))
+            if type(modifier) is not list:
+                modifier = [modifier]
 
-            selenium.webdriver.common.action_chains.ActionChains(driver = self._driver).key_up(value = modifier, element = None).perform()
+            action = selenium.webdriver.common.action_chains.ActionChains(driver = self._driver)
+            clause = ''
+            for i in modifier:
+                if not ((type(i) is unicode) and (i in selenium.webdriver.common.keys.Keys.__dict__.values())):
+                    raise Exception('pass modifier as list(Key())!')
+
+                action.key_up(value = i, element = None)
+                clause += i.encode(encoding = 'unicode-escape', errors = 'strict')
+
+            self._log.clause(clause = 'modifier = ' + clause)
+
+            action.perform()
 
             self._log.effect(effect = 'modifier up')
         except Exception as e:
