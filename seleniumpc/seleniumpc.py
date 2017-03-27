@@ -75,7 +75,7 @@ class Driver(object):
     @delay.setter
     def delay(self, delay):
         if not (type(delay) is int and delay > 0):
-            raise Exception('pass delay as float(>0)/int(>0)!')
+            raise Exception('pass delay as int(>0)!')
         self._delay = delay / 1000
 
     def launch(self):
@@ -119,11 +119,13 @@ class Driver(object):
 ##                self._driver = selenium.webdriver.ie.webdriver.WebDriver(executable_path = self._executor, capabilities = capability, log_level = 'trace') #debug
                 self._driver = selenium.webdriver.ie.webdriver.WebDriver(executable_path = self._executor, capabilities = capability)
 
-
+            #selenium extension is not enabled in chrome's incognito mode, then it would not be able to handle instructions in incognito mode either
             if (self._name == 'chrome') and (('incognito' in self._option) or ('-incognito' in self._option) or ('--incognito' in self._option)):
                 self._driver.get(url = 'chrome://extensions-frame')
-                if self._driver.find_element_by_xpath(xpath = "//span[@class='extension-title'][text()='Chrome Automation Extension']/parent::div/parent::div[@class='extension-details']//label[@class='incognito-control']/input[@type='checkbox']").is_selected() is False:
-                    self._driver.find_element_by_xpath(xpath = "//span[@class='extension-title'][text()='Chrome Automation Extension']/parent::div/parent::div[@class='extension-details']//label[@class='incognito-control']/input[@type='checkbox']").click()
+                if self._driver.find_elements(by = 'xpath', value = "//input[@type='checkbox' and @focus-type='incognito' and @tabindex='0']").is_selected() is False:
+                    self._driver.find_elements(by = 'xpath', value = "//input[@type='checkbox' and @focus-type='incognito' and @tabindex='0']").click()
+##                if self._driver.find_elements(by = 'xpath', value = "//span[@class='extension-title'][text()='Chrome Automation Extension']/parent::div/parent::div[@class='extension-details']//label[@class='incognito-control']/input[@type='checkbox']").is_selected() is False:
+##                    self._driver.find_elements(by = 'xpath', value = "//span[@class='extension-title'][text()='Chrome Automation Extension']/parent::div/parent::div[@class='extension-details']//label[@class='incognito-control']/input[@type='checkbox']").click()
 
             self._driver.maximize_window()
 
@@ -260,7 +262,7 @@ class Driver(object):
 
             self._log.clause(clause = 'xpath = ' + xpath)
 
-            element = self._driver.find_elements_by_xpath(xpath = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
+            element = self._driver.find_elements(by = 'xpath', value = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
             if not ((type(element) is list) and (len(element) > 0)):
                 raise Exception('find element = 0!')
 
@@ -346,7 +348,7 @@ class Driver(object):
             if self._name == 'ie':
                 try:
                     if len(self._driver.window_handles) > number:
-                        self._driver._switch_to.window(window_name = self._driver._driver.window_handles[-1])
+                        self._driver._switch_to.window(window_name = self._driver.window_handles[-1])
 
                         self._driver.maximize_window()
                 except selenium.common.exceptions.UnexpectedAlertPresentException:
@@ -354,7 +356,7 @@ class Driver(object):
                 except selenium.common.exceptions.NoSuchWindowException:
                     pass
             elif len(self._driver.window_handles) > number:
-                self._driver._switch_to.window(window_name = self._driver._driver.window_handles[-1])
+                self._driver._switch_to.window(window_name = self._driver.window_handles[-1])
 
             self._log.effect(effect = 'key type')
         except Exception as e:
@@ -696,7 +698,7 @@ class Element(object):
 
             self._driver._log.clause(clause = 'xpath = ' + xpath)
 
-            element = self._element.find_elements_by_xpath(xpath = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
+            element = self._element.find_elements(by = 'xpath', value = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
             if not ((type(element) is list) and (len(element) > 0)):
                 raise Exception('find element = 0!')
 
@@ -713,11 +715,11 @@ class Element(object):
         time.sleep(self._driver._delay)
         self._driver._log.ignite(ignite = 'Element.parent()')
         try:
-            xpath = './/parent::node()'
+            xpath = './/..'
 
             self._driver._log.clause(clause = 'xpath = ' + xpath)
 
-            element = self._element.find_element_by_xpath(xpath = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
+            element = self._element.find_element(by = 'xpath', value = xpath)
 
 ##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', element)
 
@@ -761,14 +763,14 @@ class Element(object):
             self._driver._log.error(error = e)
             raise e
 
-    def click(self, x = 0, y = 0):
+    def click(self, x = 0, y = 0, count = 1):
         time.sleep(self._driver._delay)
         self._driver._log.ignite(ignite = 'Element.click()')
         try:
-            if not ((type(x) is int) and (type(y) is int)):
-                raise Exception('pass x/y as int()!')
+            if not ((type(x) is int) and (type(y) is int) and (type(count) is int) and (count > 0)):
+                raise Exception('pass x/y/count as int()/int(>0)!')
 
-            self._driver._log.clause(clause = 'x = ' + str(x) + ', y = ' + str(y))
+            self._driver._log.clause(clause = 'x = ' + str(x) + ', y = ' + str(y) + ', count = ' + str(count))
 
             end = time.time() + 7
             while time.time() < end:
@@ -785,28 +787,35 @@ class Element(object):
                     else:
                         raise e
 
-            number = len(self._driver._driver.window_handles)
+            number = len(self._element._parent.window_handles)
 
 ##            if self._driver._name != 'ie':
-##                self._driver._handle = self._driver._driver.current_window_handle
-            self._driver._handle = self._driver._driver.current_window_handle
+##                self._driver._handle = self._element._parent.current_window_handle
+            self._driver._handle = self._element._parent.current_window_handle
 
 ##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
 
             if x == 0 and y == 0:
-                self._element.click()
+                for i in range(0, count, 1):
+                    self._element.click()
+                    time.sleep(0.17)
+
             else:
-##                selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).click(on_element = None).perform()
-                selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).click_and_hold(on_element = None).release(on_element = None).perform()
+                action = selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent)
+                action.move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y)
+                for i in range(0, count, 1):
+##                    action.click(on_element = None).perform()
+                    action.click_and_hold(on_element = None).release(on_element = None).perform()
+                    time.sleep(0.17)
 
             #Element.click() would typically open a new window
             if self._driver._name == 'ie':
                 #ie treats HTML prompt and download dialog as Alerts
                 try:
-                    if len(self._driver._driver.window_handles) > number:
-                        self._driver._driver._switch_to.window(window_name = self._driver._driver.window_handles[-1])
+                    if len(self._element._parent.window_handles) > number:
+                        self._element._parent._switch_to.window(window_name = self._element._parent.window_handles[-1])
 
-                        self._driver._driver.maximize_window()
+                        self._element._parent.maximize_window()
                 #while an Alert is activated, WebDriver.window_handles() would raise UnexpectedAlertPresentException
                 except selenium.common.exceptions.UnexpectedAlertPresentException:
                     pass
@@ -814,11 +823,11 @@ class Element(object):
                 except selenium.common.exceptions.NoSuchWindowException:
                     pass
                 #the moment HTML prompt pops up/download dialog pops up/file has been downloaded and being moved from temp folder to destination folder, the Alert is activated
-            elif len(self._driver._driver.window_handles) > number:
+            elif len(self._element._parent.window_handles) > number:
                 #chrome & ff treat HTML prompt and download dialog as normal windows
-                self._driver._driver._switch_to.window(window_name = self._driver._driver.window_handles[-1])
+                self._element._parent._switch_to.window(window_name = self._element._parent.window_handles[-1])
 
-            self._driver._log.effect(effect = 'mouse click')
+            self._driver._log.effect(effect = 'mouse click = ' + str(count))
         except Exception as e:
             self._driver._log.error(error = e)
             raise e
@@ -889,6 +898,41 @@ class Element(object):
             self._driver._log.error(error = e)
             raise e
 
+    def mousepress(self, duration, x = 0, y = 0):
+        time.sleep(self._driver._delay)
+        self._driver._log.ignite(ignite = 'Element.mousepress()')
+        try:
+            if not ((type(duration) is int) and (duration > 0) and (type(x) is int) and (type(y) is int)):
+                raise Exception('pass duration/x/y as int(>0)/int()!')
+
+            self._driver._log.clause(clause = 'duration = ' + str(duration) + ', x = ' + str(x) + ', y = ' + str(y))
+
+            end = time.time() + 7
+            while time.time() < end:
+                try:
+                    if self._element.is_displayed() is True:
+                        break
+                    elif time.time() < end:
+                        time.sleep(0.7)
+                    else:
+                        raise Exception('element not display!')
+                except Exception as e:
+                    if time.time() < end:
+                        time.sleep(0.7)
+                    else:
+                        raise e
+
+##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
+
+            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).perform()
+            time.sleep(duration / 1000)
+            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).release(on_element = None).perform()
+
+            self._driver._log.effect(effect = 'mouse press = ' + str(duration))
+        except Exception as e:
+            self._driver._log.error(error = e)
+            raise e
+
     def clear(self):
         time.sleep(self._driver._delay)
         self._driver._log.ignite(ignite = 'Element.clear()')
@@ -943,11 +987,11 @@ class Element(object):
 
             self._driver._log.clause(clause = 'send = ' + send)
 
-            number = len(self._driver._driver.window_handles)
+            number = len(self._element._parent.window_handles)
 
 ##            if self._driver._name != 'ie':
-##                self._driver._handle = self._driver._driver.current_window_handle
-            self._driver._handle = self._driver._driver.current_window_handle
+##                self._driver._handle = self._element._parent.current_window_handle
+            self._driver._handle = self._element._parent.current_window_handle
 
 ##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
 
@@ -956,16 +1000,16 @@ class Element(object):
             #Element.click() would typically open a new window, and rarely Element.send() would open a new window either
             if self._driver._name == 'ie':
                 try:
-                    if len(self._driver._driver.window_handles) > number:
-                        self._driver._driver._switch_to.window(window_name = self._driver._driver.window_handles[-1])
+                    if len(self._element._parent.window_handles) > number:
+                        self._element._parent._switch_to.window(window_name = self._element._parent.window_handles[-1])
 
-                        self._driver._driver.maximize_window()
+                        self._element._parent.maximize_window()
                 except selenium.common.exceptions.UnexpectedAlertPresentException:
                     pass
                 except selenium.common.exceptions.NoSuchWindowException:
                     pass
-            elif len(self._driver._driver.window_handles) > number:
-                self._driver._driver._switch_to.window(window_name = self._driver._driver.window_handles[-1])
+            elif len(self._element._parent.window_handles) > number:
+                self._element._parent._switch_to.window(window_name = self._element._parent.window_handles[-1])
 
             self._driver._log.effect(effect = 'line send')
         except Exception as e:
@@ -1010,7 +1054,7 @@ class Element(object):
             end = time.time() + timeout / 1000
             while time.time() < end:
                 try:
-                    self._element.find_element_by_xpath(xpath = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
+                    self._element.find_element(by = 'xpath', value = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
                 except Exception as e:
                     if time.time() < end:
                         time.sleep(0.7)
@@ -1062,7 +1106,7 @@ class Element(object):
             end = time.time() + timeout / 1000
             while time.time() < end:
                 try:
-                    self._element.find_element_by_xpath(xpath = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
+                    self._element.find_element(by = 'xpath', value = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
                 except Exception as e:
                         break
                 else:
@@ -1136,7 +1180,7 @@ class Element(object):
         try:
             self._driver._log.clause(clause = 'none')
 
-            width = self._element.size['width']
+            width = self._element.size.get('width', None)
 
             self._driver._log.effect(effect = 'element width = ' + (str(width) if width is not None else 'none'))
 
@@ -1151,7 +1195,7 @@ class Element(object):
         try:
             self._driver._log.clause(clause = 'none')
 
-            height = self._element.size['height']
+            height = self._element.size.get('height', None)
 
             self._driver._log.effect(effect = 'element height = ' + (str(height) if height is not None else 'none'))
 
@@ -1166,7 +1210,7 @@ class Element(object):
         try:
             self._driver._log.clause(clause = 'none')
 
-            result = self._element.is_displayed() if True is True else False
+            result = self._element.is_displayed() is True
 
             self._driver._log.effect(effect = 'element isdisplay = ' + ('true' if result else 'false'))
 
@@ -1181,7 +1225,7 @@ class Element(object):
         try:
             self._driver._log.clause(clause = 'none')
 
-            result = self._element.is_selected() if True is True else False
+            result = self._element.is_selected() is True
 
             self._driver._log.effect(effect = 'element isselect = ' + ('true' if result else 'false'))
 
@@ -1196,7 +1240,7 @@ class Element(object):
         try:
             self._driver._log.clause(clause = 'none')
 
-            result = self._element.is_enabled() if True is True else False
+            result = self._element.is_enabled() is True
 
             self._driver._log.effect(effect = 'element isenable = ' + ('true' if result else 'false'))
 
