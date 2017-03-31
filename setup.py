@@ -7,7 +7,7 @@ distutils.core.setup(
     name = 'seleniumpc',
     version = '0.0.1',
     packages = ['seleniumpc'],
-    requires = ['selenium', 'PyAutoIt', 'PIL'],
+    install_requires = ['selenium', 'PyAutoIt', 'PIL'],
     author = 'dezaojiang',
     url = 'https://github.com/dezaojiang/seleniumpc'
     )

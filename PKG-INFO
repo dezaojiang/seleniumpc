@@ -1,4 +1,4 @@
-Metadata-Version: 1.1
+Metadata-Version: 1.0
 Name: seleniumpc
 Version: 0.0.1
 Summary: UNKNOWN
@@ -8,6 +8,3 @@ Author-email: UNKNOWN
 License: UNKNOWN
 Description: UNKNOWN
 Platform: UNKNOWN
-Requires: selenium
-Requires: PyAutoIt
-Requires: PIL
