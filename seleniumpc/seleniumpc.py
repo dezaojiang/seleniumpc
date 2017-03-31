@@ -122,10 +122,10 @@ class Driver(object):
             #selenium extension is not enabled in chrome's incognito mode, then it would not be able to handle instructions in incognito mode either
             if (self._name == 'chrome') and (('incognito' in self._option) or ('-incognito' in self._option) or ('--incognito' in self._option)):
                 self._driver.get(url = 'chrome://extensions-frame')
-                if self._driver.find_elements(by = 'xpath', value = "//input[@type='checkbox' and @focus-type='incognito' and @tabindex='0']").is_selected() is False:
-                    self._driver.find_elements(by = 'xpath', value = "//input[@type='checkbox' and @focus-type='incognito' and @tabindex='0']").click()
-##                if self._driver.find_elements(by = 'xpath', value = "//span[@class='extension-title'][text()='Chrome Automation Extension']/parent::div/parent::div[@class='extension-details']//label[@class='incognito-control']/input[@type='checkbox']").is_selected() is False:
-##                    self._driver.find_elements(by = 'xpath', value = "//span[@class='extension-title'][text()='Chrome Automation Extension']/parent::div/parent::div[@class='extension-details']//label[@class='incognito-control']/input[@type='checkbox']").click()
+                if self._driver.find_element(by = 'xpath', value = "//input[@type='checkbox'][@focus-type='incognito'][@tabindex='0']").is_selected() is False:
+                    self._driver.find_element(by = 'xpath', value = "//input[@type='checkbox'][@focus-type='incognito'][@tabindex='0']").click()
+##                if self._driver.find_element(by = 'xpath', value = "//span[@class='extension-title'][text()='Chrome Automation Extension']/parent::div/parent::div[@class='extension-details']//label[@class='incognito-control']/input[@type='checkbox']").is_selected() is False:
+##                    self._driver.find_element(by = 'xpath', value = "//span[@class='extension-title'][text()='Chrome Automation Extension']/parent::div/parent::div[@class='extension-details']//label[@class='incognito-control']/input[@type='checkbox']").click()
 
             self._driver.maximize_window()
 
@@ -244,9 +244,9 @@ class Driver(object):
                     raise Exception('pass attribute as list(Attribute())!')
 
                 if i._strict is True:
-                    xpath += "[@" + i._key + "='" + i._value + "']"
+                    xpath += '[@' + i._key + '=' + i._value + ']'
                 else:
-                    xpath += "[contains(@" + i._key + ",'" + i._value + "')]"
+                    xpath += '[contains(@' + i._key + ',' + i._value + ')]'
 
             if type(text) is not list:
                 text = [text]
@@ -256,9 +256,9 @@ class Driver(object):
                     raise Exception('pass text as list(Text())!')
 
                 if i._strict is True:
-                    xpath += "[text()='" + i._text + "']"
+                    xpath += '[text()=' + i._text + ']'
                 else:
-                    xpath += "[contains(text(),'" + i._text + "')]"
+                    xpath += '[contains(text(),' + i._text + ')]'
 
             self._log.clause(clause = 'xpath = ' + xpath)
 
@@ -680,9 +680,9 @@ class Element(object):
                     raise Exception('pass attribute as list(Attribute())!')
 
                 if i._strict is True:
-                    xpath += "[@" + i._key + "='" + i._value + "']"
+                    xpath += '[@' + i._key + '=' + i._value + ']'
                 else:
-                    xpath += "[contains(@" + i._key + ",'" + i._value + "')]"
+                    xpath += '[contains(@' + i._key + ',' + i._value + ')]'
 
             if type(text) is not list:
                 text = [text]
@@ -692,9 +692,9 @@ class Element(object):
                     raise Exception('pass text as list(Text())!')
 
                 if i._strict is True:
-                    xpath += "[text()='" + i._text + "']"
+                    xpath += '[text()=' + i._text + ']'
                 else:
-                    xpath += "[contains(text(),'" + i._text + "')]"
+                    xpath += '[contains(text(),' + i._text + ')]'
 
             self._driver._log.clause(clause = 'xpath = ' + xpath)
 
@@ -715,9 +715,9 @@ class Element(object):
         time.sleep(self._driver._delay)
         self._driver._log.ignite(ignite = 'Element.parent()')
         try:
-            xpath = './/..'
+            xpath = './..'
 
-            self._driver._log.clause(clause = 'xpath = ' + xpath)
+            self._driver._log.clause(clause = 'xpath = ./..')
 
             element = self._element.find_element(by = 'xpath', value = xpath)
 
@@ -744,8 +744,6 @@ class Element(object):
                 try:
                     if self._element.is_displayed() is True:
                         break
-                    elif time.time() < end:
-                        time.sleep(0.7)
                     else:
                         raise Exception('element not display!')
                 except Exception as e:
@@ -756,7 +754,7 @@ class Element(object):
 
 ##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
 
-            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).perform()
+            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size[u'width'] / 2 + x, yoffset = self._element.size[u'height'] / 2 - y).perform()
 
             self._driver._log.effect(effect = 'mouse hover')
         except Exception as e:
@@ -777,8 +775,6 @@ class Element(object):
                 try:
                     if self._element.is_displayed() is True:
                         break
-                    elif time.time() < end:
-                        time.sleep(0.7)
                     else:
                         raise Exception('element not display!')
                 except Exception as e:
@@ -798,15 +794,14 @@ class Element(object):
             if x == 0 and y == 0:
                 for i in range(0, count, 1):
                     self._element.click()
-                    time.sleep(0.17)
-
+##                    time.sleep(0.17)
             else:
                 action = selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent)
-                action.move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y)
+                action.move_to_element_with_offset(to_element = self._element, xoffset = self._element.size[u'width'] / 2 + x, yoffset = self._element.size[u'height'] / 2 - y)
                 for i in range(0, count, 1):
-##                    action.click(on_element = None).perform()
-                    action.click_and_hold(on_element = None).release(on_element = None).perform()
-                    time.sleep(0.17)
+##                    action.click(on_element = None)
+                    action.click_and_hold(on_element = None).release(on_element = None)
+                action.perform()
 
             #Element.click() would typically open a new window
             if self._driver._name == 'ie':
@@ -846,8 +841,6 @@ class Element(object):
                 try:
                     if self._element.is_displayed() is True:
                         break
-                    elif time.time() < end:
-                        time.sleep(0.7)
                     else:
                         raise Exception('element not display!')
                 except Exception as e:
@@ -858,7 +851,7 @@ class Element(object):
 
 ##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
 
-            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).click_and_hold(on_element = None).perform()
+            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size[u'width'] / 2 + x, yoffset = self._element.size[u'height'] / 2 - y).click_and_hold(on_element = None).perform()
 
             self._driver._log.effect(effect = 'mouse down')
         except Exception as e:
@@ -879,8 +872,6 @@ class Element(object):
                 try:
                     if self._element.is_displayed() is True:
                         break
-                    elif time.time() < end:
-                        time.sleep(0.7)
                     else:
                         raise Exception('element not display!')
                 except Exception as e:
@@ -891,7 +882,7 @@ class Element(object):
 
 ##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
 
-            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).release(on_element = None).perform()
+            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size[u'width'] / 2 + x, yoffset = self._element.size[u'height'] / 2 - y).release(on_element = None).perform()
 
             self._driver._log.effect(effect = 'mouse up')
         except Exception as e:
@@ -912,8 +903,6 @@ class Element(object):
                 try:
                     if self._element.is_displayed() is True:
                         break
-                    elif time.time() < end:
-                        time.sleep(0.7)
                     else:
                         raise Exception('element not display!')
                 except Exception as e:
@@ -924,7 +913,7 @@ class Element(object):
 
 ##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
 
-            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).perform()
+            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size[u'width'] / 2 + x, yoffset = self._element.size[u'height'] / 2 - y).perform()
             time.sleep(duration / 1000)
             selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).release(on_element = None).perform()
 
@@ -944,8 +933,6 @@ class Element(object):
                 try:
                     if self._element.is_displayed() is True:
                         break
-                    elif time.time() < end:
-                        time.sleep(0.7)
                     else:
                         raise Exception('element not display!')
                 except Exception as e:
@@ -975,8 +962,6 @@ class Element(object):
                 try:
                     if self._element.is_displayed() is True:
                         break
-                    elif time.time() < end:
-                        time.sleep(0.7)
                     else:
                         raise Exception('element not display!')
                 except Exception as e:
@@ -1033,9 +1018,9 @@ class Element(object):
                     raise Exception('pass attribute as list(Attribute())!')
 
                 if i._strict is True:
-                    xpath += "[@" + i._key + "='" + i._value + "']"
+                    xpath += '[@' + i._key + '=' + i._value + ']'
                 else:
-                    xpath += "[contains(@" + i._key + ",'" + i._value + "')]"
+                    xpath += '[contains(@' + i._key + ',' + i._value + ')]'
 
             if type(text) is not list:
                 text = [text]
@@ -1045,16 +1030,17 @@ class Element(object):
                     raise Exception('pass text as list(Text())!')
 
                 if i._strict is True:
-                    xpath += "[text()='" + i._text + "']"
+                    xpath += '[text()=' + i._text + ']'
                 else:
-                    xpath += "[contains(text(),'" + i._text + "')]"
+                    xpath += '[contains(text(),' + i._text + ')]'
 
             self._driver._log.clause(clause = 'xpath = ' + xpath)
 
             end = time.time() + timeout / 1000
             while time.time() < end:
                 try:
-                    self._element.find_element(by = 'xpath', value = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
+                    if not isinstance(self._element.find_element(by = 'xpath', value = xpath.decode(encoding = 'UTF-8', errors = 'strict')), selenium.webdriver.remote.webelement.WebElement):
+                        raise Exception('element not exist!')
                 except Exception as e:
                     if time.time() < end:
                         time.sleep(0.7)
@@ -1085,9 +1071,9 @@ class Element(object):
                     raise Exception('pass attribute as list(Attribute())!')
 
                 if i._strict is True:
-                    xpath += "[@" + i._key + "='" + i._value + "']"
+                    xpath += '[@' + i._key + '=' + i._value + ']'
                 else:
-                    xpath += "[contains(@" + i._key + ",'" + i._value + "')]"
+                    xpath += '[contains(@' + i._key + ',' + i._value + ')]'
 
             if type(text) is not list:
                 text = [text]
@@ -1097,23 +1083,24 @@ class Element(object):
                     raise Exception('pass text as list(Text())!')
 
                 if i._strict is True:
-                    xpath += "[text()='" + i._text + "']"
+                    xpath += '[text()=' + i._text + ']'
                 else:
-                    xpath += "[contains(text(),'" + i._text + "')]"
+                    xpath += '[contains(text(),' + i._text + ')]'
 
             self._driver._log.clause(clause = 'xpath = ' + xpath)
 
             end = time.time() + timeout / 1000
             while time.time() < end:
                 try:
-                    self._element.find_element(by = 'xpath', value = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
-                except Exception as e:
+                    if not isinstance(self._element.find_element(by = 'xpath', value = xpath.decode(encoding = 'UTF-8', errors = 'strict')), selenium.webdriver.remote.webelement.WebElement):
+                        raise
+                except Exception:
                         break
                 else:
                     if time.time() < end:
                         time.sleep(0.7)
                     else:
-                        raise e
+                        raise Exception('element not extinct!')
 
             self._driver._log.effect(effect = 'element extinct')
         except Exception as e:
@@ -1180,7 +1167,7 @@ class Element(object):
         try:
             self._driver._log.clause(clause = 'none')
 
-            width = self._element.size.get('width', None)
+            width = self._element.size.get(u'width', None)
 
             self._driver._log.effect(effect = 'element width = ' + (str(width) if width is not None else 'none'))
 
@@ -1195,7 +1182,7 @@ class Element(object):
         try:
             self._driver._log.clause(clause = 'none')
 
-            height = self._element.size.get('height', None)
+            height = self._element.size.get(u'height', None)
 
             self._driver._log.effect(effect = 'element height = ' + (str(height) if height is not None else 'none'))
 
@@ -1261,7 +1248,7 @@ class Attribute(object):
             raise Exception('pass key/value as str(len>0)!')
 
         self._key = key
-        self._value = value
+        self._value = "'" + value + "'"
         self._strict = strict
 
 
@@ -1275,7 +1262,7 @@ class Text(object):
         if not ((type(text) is str) and len(text) > 0):
             raise Exception('pass text as str(len>0)!')
 
-        self._text = text
+        self._text = "'" + text + "'"
         self._strict = strict
 
 
