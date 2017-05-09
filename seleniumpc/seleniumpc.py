@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-import os, re, selenium, time, autoit, datetime, PIL.ImageGrab, traceback
+import os, re, selenium, time, autoit, datetime, StringIO, PIL.ImageGrab, traceback
 from selenium.webdriver.common.keys import Keys as Key
 
 class Driver(object):
@@ -15,6 +15,7 @@ class Driver(object):
         self._delay = 0.7
         self._driver = None
         self._handle = None
+        self._frame = list()
 
     @property
     def name(self):
@@ -30,18 +31,18 @@ class Driver(object):
         return self._executor
     @executor.setter
     def executor(self, executor):
-        if not ((type(executor) is str) and (executor.strip().endswith('.exe')) and (os.path.isfile(path = executor.strip().decode(encoding = 'UTF-8', errors = 'strict')))):
+        if not ((type(executor) is str) and (len(re.findall(pattern = '^.*[.]exe\s*$', string = executor, flags = re.IGNORECASE)) == 1) and (os.path.isfile(path = executor.strip().decode(encoding = 'utf_8', errors = 'strict')))):
             raise Exception('pass executor as str(executor_path)!')
-        self._executor = executor.strip().decode(encoding = 'UTF-8', errors = 'strict')
+        self._executor = executor.strip()
 
     @property
     def browser(self):
         return self._browser
     @browser.setter
     def browser(self, browser):
-        if not ((type(browser) is str) and (browser.strip().endswith('.exe')) and (os.path.isfile(path = browser.strip().decode(encoding = 'UTF-8', errors = 'strict')))):
+        if not ((type(browser) is str) and (len(re.findall(pattern = '^.*[.]exe\s*$', string = browser, flags = re.IGNORECASE)) == 1) and (os.path.isfile(path = browser.strip().decode(encoding = 'utf_8', errors = 'strict')))):
             raise Exception('pass browser as str(browser_path)!')
-        self._browser = browser.strip().decode(encoding = 'UTF-8', errors = 'strict')
+        self._browser = browser.strip()
 
     @property
     def proxy(self):
@@ -103,7 +104,7 @@ class Driver(object):
 
         self._log.ignite(ignite = 'Driver.launch()')
         try:
-            self._log.clause(clause = 'name = ' + self._name + ', executor = ' + (self._executor if self._executor is not None else 'none') + ', browser = ' + (self._browser if self._browser is not None else 'none') + ', proxy = ' + (self._proxy if self._proxy is not None else 'none') + ', option = ' + (' '.join(self._option) if len(self._option) > 0 else 'none') + ', log = ' + self._log._log.name.encode(encoding = 'UTF-8', errors = 'strict'))
+            self._log.clause(clause = 'name = ' + self._name + ', executor = ' + (self._executor.replace('/', '\\') if self._executor is not None else 'none') + ', browser = ' + (self._browser.replace('/', '\\') if self._browser is not None else 'none') + ', proxy = ' + (self._proxy if self._proxy is not None else 'none') + ', option = ' + (' '.join(self._option) if len(self._option) > 0 else 'none') + ', log = ' + self._log._log.name.encode(encoding = 'utf_8', errors = 'strict'))
 
             if self._name == 'chrome':
 ##                self._driver = selenium.webdriver.chrome.webdriver.WebDriver(executable_path = self._executor, desired_capabilities = capability, service_args = ['--verbose']) #debug
@@ -160,7 +161,7 @@ class Driver(object):
 
             self._log.clause(clause = 'url = ' + url.strip())
 
-            self._driver.get(url = url.strip().decode(encoding = 'UTF-8', errors = 'strict'))
+            self._driver.get(url = url.strip().decode(encoding = 'utf_8', errors = 'strict'))
 
 ##            if self._name != 'ie':
 ##                self._handle = self._driver.current_window_handle
@@ -221,6 +222,7 @@ class Driver(object):
 
             self._driver.close()
             self._driver._switch_to.window(window_name = self._driver.window_handles[-1])
+            del self._frame[:]
 
             self._log.effect(effect = 'webpage close')
         except Exception as e:
@@ -262,11 +264,11 @@ class Driver(object):
 
             self._log.clause(clause = 'xpath = ' + xpath)
 
-            element = self._driver.find_elements(by = 'xpath', value = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
+            element = self._driver.find_elements(by = 'xpath', value = xpath.decode(encoding = 'utf_8', errors = 'strict'))
             if not ((type(element) is list) and (len(element) > 0)):
                 raise Exception('find element = 0!')
 
-##            self._driver.execute_script('arguments[0].scrollIntoView(true)', element[0])
+##            self._driver.execute_script(script = 'arguments[0].scrollIntoView(true)', element[0])
 
             self._log.effect(effect = 'find element = ' + str(len(element)))
 
@@ -284,13 +286,14 @@ class Driver(object):
 
             tag = element._element.tag_name
             if type(tag) is unicode:
-                tag = tag.encode(encoding = 'UTF-8', errors = 'strict')
+                tag = tag.encode(encoding = 'utf_8', errors = 'strict')
             if not ((tag is not None) and ('frame' in tag)):
                 raise Exception('pass element as Element(<frame>)!')
 
             self._log.clause(clause = 'Element()')
 
             self._driver._switch_to.frame(frame_reference = element._element)
+            self._frame.append(element._element)
 
             self._log.effect(effect = 'frame in')
         except Exception as e:
@@ -349,6 +352,7 @@ class Driver(object):
                 try:
                     if len(self._driver.window_handles) > number:
                         self._driver._switch_to.window(window_name = self._driver.window_handles[-1])
+                        del self._frame[:]
 
                         self._driver.maximize_window()
                 except selenium.common.exceptions.UnexpectedAlertPresentException:
@@ -357,6 +361,7 @@ class Driver(object):
                     pass
             elif len(self._driver.window_handles) > number:
                 self._driver._switch_to.window(window_name = self._driver.window_handles[-1])
+                del self._frame[:]
 
             self._log.effect(effect = 'key type')
         except Exception as e:
@@ -442,10 +447,10 @@ class Driver(object):
 
             text = alert.text
             if type(text) is unicode:
-                text = text.encode(encoding = 'UTF-8', errors = 'strict')
+                text = text.encode(encoding = 'utf_8', errors = 'strict')
 
             if send is not None:
-                alert.send_keys(keysToSend = send.decode(encoding = 'UTF-8', errors = 'strict'))
+                alert.send_keys(keysToSend = send.decode(encoding = 'utf_8', errors = 'strict'))
 
             if accept is True:
                 #accept the Alert would automatically switch Driver from current Alert back to last window
@@ -454,6 +459,7 @@ class Driver(object):
                 #accept the Alert would not switch Driver back to last window, thus add one more manual step to do the switch action
                 alert.dismiss()
                 self._driver._switch_to.window(window_name = self._driver.window_handles[-1])
+                del self._frame[:]
 
             self._log.effect(effect = 'alert text = ' + (text if text is not None else 'none'))
 
@@ -466,10 +472,10 @@ class Driver(object):
         time.sleep(self._delay)
         self._log.ignite(ignite = 'Driver.upload()')
         try:
-            if not ((type(path) is str) and (os.path.isfile(path = path.strip().decode(encoding = 'UTF-8', errors = 'strict'))) and (type(timeout) is int) and (timeout > 0)):
+            if not ((type(path) is str) and (os.path.isfile(path = path.strip().decode(encoding = 'utf_8', errors = 'strict'))) and (type(timeout) is int) and (timeout > 0)):
                 raise Exception('pass path/timeout as str(file_path)/int(>0)!')
 
-            self._log.clause(clause = 'path = ' + path.strip() + ', timeout = ' + str(timeout))
+            self._log.clause(clause = 'path = ' + path.strip().replace('/', '\\') + ', timeout = ' + str(timeout))
 
             if self._name == 'chrome':
                 title = u'打开'
@@ -482,7 +488,7 @@ class Driver(object):
             window = autoit.win_get_handle(title = title)
             edit = autoit.control_get_handle(hwnd = window, control = 'Edit1')
             button = autoit.control_get_handle(hwnd = window, control = 'Button1')
-            autoit.control_set_text_by_handle(hwnd = window, h_ctrl = edit, control_text = path.strip().replace('/', '\\').decode(encoding = 'UTF-8', errors = 'strict'))
+            autoit.control_set_text_by_handle(hwnd = window, h_ctrl = edit, control_text = path.strip().replace('/', '\\').decode(encoding = 'utf_8', errors = 'strict'))
             time.sleep(0.7)
             autoit.control_click_by_handle(hwnd = window, h_ctrl = button)
 
@@ -495,10 +501,10 @@ class Driver(object):
         time.sleep(self._delay)
         self._log.ignite(ignite = 'Driver.download()')
         try:
-            if not ((type(path) is str) and (len(path.strip()) > 0) and (type(timeout) is int) and (timeout > 0)):
+            if not ((type(path) is str) and (len(re.findall(pattern = '^\s*(.+[/\\\])(.*)\s*$', string = path, flags = 0)) == 1) and (len(re.findall(pattern = '^\s*(.+[/\\\])\s*(.*)\s*$', string = path, flags = 0)[0][1]) > 0) and (type(timeout) is int) and (timeout > 0)):
                 raise Exception('pass path/timeout as str(file_path)/int(>0)!')
 
-            self._log.clause(clause = 'path = ' + path.strip() + ', timeout = ' + str(timeout))
+            self._log.clause(clause = 'path = ' + (re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*)\s*$', string = path, flags = 0)[0][1]).replace('/', '\\') + ', timeout = ' + str(timeout))
 
             if self._name == 'chrome':
                 title = u'另存为'
@@ -507,12 +513,12 @@ class Driver(object):
                 edit = autoit.control_get_handle(hwnd = window, control = 'Edit1')
                 combo = autoit.control_get_handle(hwnd = window, control = 'ComboBox2')
                 button = autoit.control_get_handle(hwnd = window, control = 'Button1')
-                if os.path.isfile(path = path.strip().decode(encoding = 'UTF-8', errors = 'strict')):
-                    os.remove(path.strip().decode(encoding = 'UTF-8', errors = 'strict'))
-                elif not os.path.exists(path = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'UTF-8', errors = 'strict')):
-                    os.makedirs(name = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'UTF-8', errors = 'strict'), mode = 0777)
+                if os.path.isfile(path = (re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*)\s*$', string = path, flags = 0)[0][1]).decode(encoding = 'utf_8', errors = 'strict')):
+                    os.remove((re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*)\s*$', string = path, flags = 0)[0][1]).decode(encoding = 'utf_8', errors = 'strict'))
+                elif not os.path.exists(path = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'utf_8', errors = 'strict')):
+                    os.makedirs(name = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'utf_8', errors = 'strict'), mode = 0777)
                 time.sleep(0.7)
-                autoit.control_set_text_by_handle(hwnd = window, h_ctrl = edit, control_text = path.strip().replace('/', '\\').decode(encoding = 'UTF-8', errors = 'strict'))
+                autoit.control_set_text_by_handle(hwnd = window, h_ctrl = edit, control_text = (re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*)\s*$', string = path, flags = 0)[0][1]).replace('/', '\\').decode(encoding = 'utf_8', errors = 'strict'))
                 time.sleep(0.7)
                 autoit.control_click_by_handle(hwnd = window, h_ctrl = combo)
                 time.sleep(0.7)
@@ -526,6 +532,7 @@ class Driver(object):
 
                 self._log.effect(effect = 'download file')
 ##                self._driver._switch_to.window(window_name = self._handle)
+##                del self._frame[:]
 
             elif self._name == 'ff':
                 title = '[CLASS:MozillaDialogClass]'
@@ -538,10 +545,10 @@ class Driver(object):
                 window = autoit.win_get_handle(title = title)
                 edit = autoit.control_get_handle(hwnd = window, control = 'Edit1')
                 button = autoit.control_get_handle(hwnd = window, control = 'Button1')
-                if not os.path.exists(path = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'UTF-8', errors = 'strict')):
-                    os.makedirs(name = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'UTF-8', errors = 'strict'), mode = 0777)
+                if not os.path.exists(path = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'utf_8', errors = 'strict')):
+                    os.makedirs(name = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'utf_8', errors = 'strict'), mode = 0777)
                 time.sleep(0.7)
-                autoit.control_set_text_by_handle(hwnd = window, h_ctrl = edit, control_text = path.strip().replace('/', '\\').decode(encoding = 'UTF-8', errors = 'strict'))
+                autoit.control_set_text_by_handle(hwnd = window, h_ctrl = edit, control_text = (re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*)\s*$', string = path, flags = 0)[0][1]).replace('/', '\\').decode(encoding = 'utf_8', errors = 'strict'))
                 time.sleep(0.7)
                 autoit.control_click_by_handle(hwnd = window, h_ctrl = button)
 
@@ -562,6 +569,7 @@ class Driver(object):
 
                 self._log.effect(effect = 'download file')
 ##                self._driver._switch_to.window(window_name = self._handle)
+##                del self._frame[:]
 
             else:
                 title = u'文件下载 - 安全警告'
@@ -576,10 +584,10 @@ class Driver(object):
                 window = autoit.win_get_handle(title = title)
                 edit = autoit.control_get_handle(hwnd = window, control = 'Edit1')
                 button = autoit.control_get_handle(hwnd = window, control = 'Button1')
-                if not os.path.exists(path = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'UTF-8', errors = 'strict')):
-                    os.makedirs(name = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'UTF-8', errors = 'strict'), mode = 0777)
+                if not os.path.exists(path = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'utf_8', errors = 'strict')):
+                    os.makedirs(name = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'utf_8', errors = 'strict'), mode = 0777)
                 time.sleep(0.7)
-                autoit.control_set_text_by_handle(hwnd = window, h_ctrl = edit, control_text = path.strip().replace('/', '\\').decode(encoding = 'UTF-8', errors = 'strict'))
+                autoit.control_set_text_by_handle(hwnd = window, h_ctrl = edit, control_text = (re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*)\s*$', string = path, flags = 0)[0][1]).replace('/', '\\').decode(encoding = 'utf_8', errors = 'strict'))
                 time.sleep(0.7)
                 autoit.control_click_by_handle(hwnd = window, h_ctrl = button)
 
@@ -612,6 +620,7 @@ class Driver(object):
 ##                    pass
 
             self._driver._switch_to.window(window_name = self._handle)
+            del self._frame[:]
         except Exception as e:
             self._log.error(error = e)
             raise e
@@ -624,7 +633,7 @@ class Driver(object):
 
             title = self._driver.title
             if type(title) is unicode:
-                title = title.encode(encoding = 'UTF-8', errors = 'strict')
+                title = title.encode(encoding = 'utf_8', errors = 'strict')
 
             self._log.effect(effect = 'webpage title = ' + (title if title is not None else 'none'))
 
@@ -641,11 +650,97 @@ class Driver(object):
 
             url = self._driver.current_url
             if type(url) is unicode:
-                url = url.encode(encoding = 'UTF-8', errors = 'strict')
+                url = url.encode(encoding = 'utf_8', errors = 'strict')
 
             self._log.effect(effect = 'webpage url = ' + (url if url is not None else 'none'))
 
             return url
+        except Exception as e:
+            self._log.error(error = e)
+            raise e
+
+    def shoot(self, path):
+##        time.sleep(self._delay)
+        self._log.ignite(ignite = 'Driver.shoot()')
+        try:
+            if not ((type(path) is str) and (len(re.findall(pattern = '^\s*(.+[/\\\])(.*[.]png)\s*$', string = path, flags = re.IGNORECASE)) == 1) and (len(re.findall(pattern = '^\s*(.+[/\\\])\s*(.*[.]png)\s*$', string = path, flags = re.IGNORECASE)[0][1]) > 0)):
+                raise Exception('pass path as str(png_path)!')
+
+            if not os.path.exists(path = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'utf_8', errors = 'strict')):
+                os.makedirs(name = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'utf_8', errors = 'strict'), mode = 0777)
+
+            self._log.clause(clause = 'path = ' + (re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*[.]png)\s*$', string = path, flags = re.IGNORECASE)[0][1]).replace('/', '\\'))
+
+            if self._name == 'chrome':
+                self._driver._switch_to.default_content()
+
+                full_height = self._driver.execute_script(script = 'return window.document.height')
+                full_width = self._driver.execute_script(script = 'return window.document.width')
+                screen_height = self._driver.execute_script(script = 'return window.document.documentElement.clientHeight')
+                screen_width = self._driver.execute_script(script = 'return window.document.documentElement.clientWidth')
+
+                memory = StringIO.StringIO(buf = '')
+                full_image = PIL.Image.new(mode = 'RGB', size = (full_width, full_height), color = 0)
+
+                for j in range(0, full_height / screen_height, 1):
+                    y = screen_height * j
+                    for i in range(0, full_width / screen_width, 1):
+                        x = screen_width * i
+                        self._driver.execute_script(script = ('window.scrollTo(%s, %s)' % (x, y)))
+                        time.sleep(0.7)
+                        memory.truncate(size = 0)
+##                        memory.write(s = self._driver.get_screenshot_as_png())
+                        memory.write(s = self._driver.get_screenshot_as_base64().decode(encoding = 'base64_codec', errors = 'strict'))
+                        memory.seek(pos = 0, mode = 0)
+                        screen_image = PIL.Image.open(fp = memory, mode = 'r')
+                        full_image.paste(im = screen_image, box = (x, y), mask = None)
+                    if screen_width * (i + 1) < full_width:
+                        x = full_width - 1 - screen_width
+                        self._driver.execute_script(script = ('window.scrollTo(%s, %s)' % (x, y)))
+                        time.sleep(0.7)
+                        memory.truncate(size = 0)
+##                        memory.write(s = self._driver.get_screenshot_as_png())
+                        memory.write(s = self._driver.get_screenshot_as_base64().decode(encoding = 'base64_codec', errors = 'strict'))
+                        memory.seek(pos = 0, mode = 0)
+                        screen_image = PIL.Image.open(fp = memory, mode = 'r')
+                        full_image.paste(im = screen_image, box = (x, y), mask = None)
+                if screen_height * (j + 1) < full_height:
+                    y = full_height - 1 - screen_height
+                    for i in range(0, full_width / screen_width, 1):
+                        x = screen_width * i
+                        self._driver.execute_script(script = ('window.scrollTo(%s, %s)' % (x, y)))
+                        time.sleep(0.7)
+                        memory.truncate(size = 0)
+##                        memory.write(s = self._driver.get_screenshot_as_png())
+                        memory.write(s = self._driver.get_screenshot_as_base64().decode(encoding = 'base64_codec', errors = 'strict'))
+                        memory.seek(pos = 0, mode = 0)
+                        screen_image = PIL.Image.open(fp = memory, mode = 'r')
+                        full_image.paste(im = screen_image, box = (x, y), mask = None)
+                    if screen_width * (i + 1) < full_width:
+                        x = full_width - 1 - screen_width
+                        self._driver.execute_script(script = ('window.scrollTo(%s, %s)' % (x, y)))
+                        time.sleep(0.7)
+                        memory.truncate(size = 0)
+##                        memory.write(s = self._driver.get_screenshot_as_png())
+                        memory.write(s = self._driver.get_screenshot_as_base64().decode(encoding = 'base64_codec', errors = 'strict'))
+                        memory.seek(pos = 0, mode = 0)
+                        screen_image = PIL.Image.open(fp = memory, mode = 'r')
+                        full_image.paste(im = screen_image, box = (x, y), mask = None)
+
+                full_image.save(fp = (re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*[.]png)\s*$', string = path, flags = re.IGNORECASE)[0][1]).decode(encoding = 'utf_8', errors = 'strict'), format = 'PNG')
+                memory.close()
+
+                self._log.effect(effect = 'webpage shoot')
+
+                for i in self._frame:
+                    self._driver._switch_to.frame(frame_reference = i)
+
+            else:
+##                self._driver.get_screenshot_as_file(filename = (re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*[.]png)\s*$', string = path, flags = re.IGNORECASE)[0][1]).decode(encoding = 'utf_8', errors = 'strict'))
+                with open(name = (re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*[.]png)\s*$', string = path, flags = re.IGNORECASE)[0][1]).decode(encoding = 'utf_8', errors = 'strict'), mode = 'wb+', buffering = 0) as f:
+                    f.write(self._driver.get_screenshot_as_base64().decode(encoding = 'base64_codec', errors = 'strict'))
+
+                self._log.effect(effect = 'webpage shoot')
         except Exception as e:
             self._log.error(error = e)
             raise e
@@ -698,11 +793,11 @@ class Element(object):
 
             self._driver._log.clause(clause = 'xpath = ' + xpath)
 
-            element = self._element.find_elements(by = 'xpath', value = xpath.decode(encoding = 'UTF-8', errors = 'strict'))
+            element = self._element.find_elements(by = 'xpath', value = xpath.decode(encoding = 'utf_8', errors = 'strict'))
             if not ((type(element) is list) and (len(element) > 0)):
                 raise Exception('find element = 0!')
 
-##            self._driver._parent.execute_script('arguments[0].scrollIntoView(true)', element[0])
+##            self._driver._parent.execute_script(script = 'arguments[0].scrollIntoView(true)', element[0])
 
             self._driver._log.effect(effect = 'find element = ' + str(len(element)))
 
@@ -721,7 +816,7 @@ class Element(object):
 
             element = self._element.find_element(by = 'xpath', value = xpath)
 
-##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', element)
+##            self._element._parent.execute_script(script = 'arguments[0].scrollIntoView(true)', element)
 
             self._driver._log.effect(effect = 'parent find')
 
@@ -752,9 +847,9 @@ class Element(object):
                     else:
                         raise e
 
-##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
+##            self._element._parent.execute_script(script = 'arguments[0].scrollIntoView(true)', self._element)
 
-            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size[u'width'] / 2 + x, yoffset = self._element.size[u'height'] / 2 - y).perform()
+            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).perform()
 
             self._driver._log.effect(effect = 'mouse hover')
         except Exception as e:
@@ -789,7 +884,7 @@ class Element(object):
 ##                self._driver._handle = self._element._parent.current_window_handle
             self._driver._handle = self._element._parent.current_window_handle
 
-##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
+##            self._element._parent.execute_script(script = 'arguments[0].scrollIntoView(true)', self._element)
 
             if x == 0 and y == 0:
                 for i in range(0, count, 1):
@@ -797,7 +892,7 @@ class Element(object):
 ##                    time.sleep(0.17)
             else:
                 action = selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent)
-                action.move_to_element_with_offset(to_element = self._element, xoffset = self._element.size[u'width'] / 2 + x, yoffset = self._element.size[u'height'] / 2 - y)
+                action.move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y)
                 for i in range(0, count, 1):
 ##                    action.click(on_element = None)
                     action.click_and_hold(on_element = None).release(on_element = None)
@@ -809,6 +904,7 @@ class Element(object):
                 try:
                     if len(self._element._parent.window_handles) > number:
                         self._element._parent._switch_to.window(window_name = self._element._parent.window_handles[-1])
+                        del self._driver._frame[:]
 
                         self._element._parent.maximize_window()
                 #while an Alert is activated, WebDriver.window_handles() would raise UnexpectedAlertPresentException
@@ -821,6 +917,7 @@ class Element(object):
             elif len(self._element._parent.window_handles) > number:
                 #chrome & ff treat HTML prompt and download dialog as normal windows
                 self._element._parent._switch_to.window(window_name = self._element._parent.window_handles[-1])
+                del self._driver._frame[:]
 
             self._driver._log.effect(effect = 'mouse click = ' + str(count))
         except Exception as e:
@@ -849,9 +946,9 @@ class Element(object):
                     else:
                         raise e
 
-##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
+##            self._element._parent.execute_script(script = 'arguments[0].scrollIntoView(true)', self._element)
 
-            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size[u'width'] / 2 + x, yoffset = self._element.size[u'height'] / 2 - y).click_and_hold(on_element = None).perform()
+            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).click_and_hold(on_element = None).perform()
 
             self._driver._log.effect(effect = 'mouse down')
         except Exception as e:
@@ -880,9 +977,9 @@ class Element(object):
                     else:
                         raise e
 
-##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
+##            self._element._parent.execute_script(script = 'arguments[0].scrollIntoView(true)', self._element)
 
-            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size[u'width'] / 2 + x, yoffset = self._element.size[u'height'] / 2 - y).release(on_element = None).perform()
+            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).release(on_element = None).perform()
 
             self._driver._log.effect(effect = 'mouse up')
         except Exception as e:
@@ -911,9 +1008,9 @@ class Element(object):
                     else:
                         raise e
 
-##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
+##            self._element._parent.execute_script(script = 'arguments[0].scrollIntoView(true)', self._element)
 
-            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size[u'width'] / 2 + x, yoffset = self._element.size[u'height'] / 2 - y).perform()
+            selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).move_to_element_with_offset(to_element = self._element, xoffset = self._element.size['width'] / 2 + x, yoffset = self._element.size['height'] / 2 - y).perform()
             time.sleep(duration / 1000)
             selenium.webdriver.common.action_chains.ActionChains(driver = self._element._parent).release(on_element = None).perform()
 
@@ -941,7 +1038,7 @@ class Element(object):
                     else:
                         raise e
 
-##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
+##            self._element._parent.execute_script(script = 'arguments[0].scrollIntoView(true)', self._element)
 
             self._element.clear()
 
@@ -978,15 +1075,16 @@ class Element(object):
 ##                self._driver._handle = self._element._parent.current_window_handle
             self._driver._handle = self._element._parent.current_window_handle
 
-##            self._element._parent.execute_script('arguments[0].scrollIntoView(true)', self._element)
+##            self._element._parent.execute_script(script = 'arguments[0].scrollIntoView(true)', self._element)
 
-            self._element.send_keys(send.decode(encoding = 'UTF-8', errors = 'strict'))
+            self._element.send_keys(send.decode(encoding = 'utf_8', errors = 'strict'))
 
             #Element.click() would typically open a new window, and rarely Element.send() would open a new window either
             if self._driver._name == 'ie':
                 try:
                     if len(self._element._parent.window_handles) > number:
                         self._element._parent._switch_to.window(window_name = self._element._parent.window_handles[-1])
+                        del self._driver._frame[:]
 
                         self._element._parent.maximize_window()
                 except selenium.common.exceptions.UnexpectedAlertPresentException:
@@ -995,6 +1093,7 @@ class Element(object):
                     pass
             elif len(self._element._parent.window_handles) > number:
                 self._element._parent._switch_to.window(window_name = self._element._parent.window_handles[-1])
+                del self._driver._frame[:]
 
             self._driver._log.effect(effect = 'line send')
         except Exception as e:
@@ -1039,7 +1138,7 @@ class Element(object):
             end = time.time() + timeout / 1000
             while time.time() < end:
                 try:
-                    if not isinstance(self._element.find_element(by = 'xpath', value = xpath.decode(encoding = 'UTF-8', errors = 'strict')), selenium.webdriver.remote.webelement.WebElement):
+                    if not isinstance(self._element.find_element(by = 'xpath', value = xpath.decode(encoding = 'utf_8', errors = 'strict')), selenium.webdriver.remote.webelement.WebElement):
                         raise Exception('element not exist!')
                 except Exception as e:
                     if time.time() < end:
@@ -1092,7 +1191,7 @@ class Element(object):
             end = time.time() + timeout / 1000
             while time.time() < end:
                 try:
-                    if not isinstance(self._element.find_element(by = 'xpath', value = xpath.decode(encoding = 'UTF-8', errors = 'strict')), selenium.webdriver.remote.webelement.WebElement):
+                    if not isinstance(self._element.find_element(by = 'xpath', value = xpath.decode(encoding = 'utf_8', errors = 'strict')), selenium.webdriver.remote.webelement.WebElement):
                         raise
                 except Exception:
                         break
@@ -1115,7 +1214,7 @@ class Element(object):
 
             tag = self._element.tag_name
             if type(tag) is unicode:
-                tag = tag.encode(encoding = 'utf-8', errors = 'strict')
+                tag = tag.encode(encoding = 'utf_8', errors = 'strict')
 
             self._driver._log.effect(effect = 'element tag = ' + (tag if tag is not None else 'none'))
 
@@ -1133,9 +1232,9 @@ class Element(object):
 
             self._driver._log.clause(clause = 'key = ' + key.strip())
 
-            value = self._element.get_attribute(name = key.strip().decode(encoding = 'UTF-8', errors = 'strict'))
+            value = self._element.get_attribute(name = key.strip().decode(encoding = 'utf_8', errors = 'strict'))
             if type(value) is unicode:
-                value = value.encode(encoding = 'utf-8', errors = 'strict')
+                value = value.encode(encoding = 'utf_8', errors = 'strict')
 
             self._driver._log.effect(effect = 'attibute [' + key.strip() + '] = ' + (value if value is not None else 'none'))
 
@@ -1152,7 +1251,7 @@ class Element(object):
 
             text = self._element.text
             if type(text) is unicode:
-                text = text.encode(encoding = 'utf-8', errors = 'strict')
+                text = text.encode(encoding = 'utf_8', errors = 'strict')
 
             self._driver._log.effect(effect = 'element text = ' + (text if text is not None else 'none'))
 
@@ -1167,7 +1266,7 @@ class Element(object):
         try:
             self._driver._log.clause(clause = 'none')
 
-            width = self._element.size.get(u'width', None)
+            width = self._element.size.get('width', None)
 
             self._driver._log.effect(effect = 'element width = ' + (str(width) if width is not None else 'none'))
 
@@ -1182,7 +1281,7 @@ class Element(object):
         try:
             self._driver._log.clause(clause = 'none')
 
-            height = self._element.size.get(u'height', None)
+            height = self._element.size.get('height', None)
 
             self._driver._log.effect(effect = 'element height = ' + (str(height) if height is not None else 'none'))
 
@@ -1236,6 +1335,129 @@ class Element(object):
             self._driver._log.error(error = e)
             raise e
 
+    def shoot(self, path, left = 0, top = 0, right = 0, bottom = 0):
+##        time.sleep(self._driver._delay)
+        self._driver._log.ignite(ignite = 'Driver.shoot()')
+        try:
+            if not ((type(path) is str) and (len(re.findall(pattern = '^\s*(.+[/\\\])(.*[.]png)\s*$', string = path, flags = re.IGNORECASE)) == 1) and (len(re.findall(pattern = '^\s*(.+[/\\\])\s*(.*[.]png)\s*$', string = path, flags = re.IGNORECASE)[0][1]) > 0) and (type(left) is int) and (type(top) is int) and (type(right) is int) and (type(bottom) is int)):
+                raise Exception('pass path/left/top/right/bottom as str(png_path)/int!')
+
+            if not os.path.exists(path = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'utf_8', errors = 'strict')):
+                os.makedirs(name = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'utf_8', errors = 'strict'), mode = 0777)
+
+            self._driver._log.clause(clause = 'path = ' + (re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*[.]png)\s*$', string = path, flags = re.IGNORECASE)[0][1]).replace('/', '\\') + ', left = ' + str(left) + ', top = ' + str(top) + ', right = ' + str(right) + ', bottom = ' + str(bottom))
+
+            if self._driver._name == 'chrome':
+                self._driver._driver._switch_to.default_content()
+
+                full_height = self._driver._driver.execute_script(script = 'return window.document.height')
+                full_width = self._driver._driver.execute_script(script = 'return window.document.width')
+                screen_height = self._driver._driver.execute_script(script = 'return window.document.documentElement.clientHeight')
+                screen_width = self._driver._driver.execute_script(script = 'return window.document.documentElement.clientWidth')
+
+                memory = StringIO.StringIO(buf = '')
+                full_image = PIL.Image.new(mode = 'RGB', size = (full_width, full_height), color = 0)
+
+                for j in range(0, full_height / screen_height, 1):
+                    y = screen_height * j
+                    for i in range(0, full_width / screen_width, 1):
+                        x = screen_width * i
+                        self._driver._driver.execute_script(script = ('window.scrollTo(%s, %s)' % (x, y)))
+                        time.sleep(0.7)
+                        memory.truncate(size = 0)
+##                        memory.write(s = self._driver._driver.get_screenshot_as_png())
+                        memory.write(s = self._driver._driver.get_screenshot_as_base64().decode(encoding = 'base64_codec', errors = 'strict'))
+                        memory.seek(pos = 0, mode = 0)
+                        screen_image = PIL.Image.open(fp = memory, mode = 'r')
+                        full_image.paste(im = screen_image, box = (x, y), mask = None)
+                    if screen_width * (i + 1) < full_width:
+                        x = full_width - 1 - screen_width
+                        self._driver._driver.execute_script(script = ('window.scrollTo(%s, %s)' % (x, y)))
+                        time.sleep(0.7)
+                        memory.truncate(size = 0)
+##                        memory.write(s = self._driver._driver.get_screenshot_as_png())
+                        memory.write(s = self._driver._driver.get_screenshot_as_base64().decode(encoding = 'base64_codec', errors = 'strict'))
+                        memory.seek(pos = 0, mode = 0)
+                        screen_image = PIL.Image.open(fp = memory, mode = 'r')
+                        full_image.paste(im = screen_image, box = (x, y), mask = None)
+                if screen_height * (j + 1) < full_height:
+                    y = full_height - 1 - screen_height
+                    for i in range(0, full_width / screen_width, 1):
+                        x = screen_width * i
+                        self._driver._driver.execute_script(script = ('window.scrollTo(%s, %s)' % (x, y)))
+                        time.sleep(0.7)
+                        memory.truncate(size = 0)
+##                        memory.write(s = self._driver._driver.get_screenshot_as_png())
+                        memory.write(s = self._driver._driver.get_screenshot_as_base64().decode(encoding = 'base64_codec', errors = 'strict'))
+                        memory.seek(pos = 0, mode = 0)
+                        screen_image = PIL.Image.open(fp = memory, mode = 'r')
+                        full_image.paste(im = screen_image, box = (x, y), mask = None)
+                    if screen_width * (i + 1) < full_width:
+                        x = full_width - 1 - screen_width
+                        self._driver._driver.execute_script(script = ('window.scrollTo(%s, %s)' % (x, y)))
+                        time.sleep(0.7)
+                        memory.truncate(size = 0)
+##                        memory.write(s = self._driver._driver.get_screenshot_as_png())
+                        memory.write(s = self._driver._driver.get_screenshot_as_base64().decode(encoding = 'base64_codec', errors = 'strict'))
+                        memory.seek(pos = 0, mode = 0)
+                        screen_image = PIL.Image.open(fp = memory, mode = 'r')
+                        full_image.paste(im = screen_image, box = (x, y), mask = None)
+
+                left = left
+                top = 0 - top
+                right = right
+                bottom = 0 - bottom
+                for i in self._driver._frame:
+                    left += i.location['x']
+                    top += i.location['y']
+                    right += i.location['x']
+                    bottom += i.location['y']
+                    self._driver._driver._switch_to.frame(frame_reference = i)
+
+                left += self._element.location['x']
+                top += self._element.location['y']
+                right += self._element.location['x'] + self._element.size['width']
+                bottom += self._element.location['y'] + self._element.size['height']
+
+                element_image = full_image.crop(box = (left, top, right, bottom))
+                element_image.save(fp = (re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*[.]png)\s*$', string = path, flags = re.IGNORECASE)[0][1]).decode(encoding = 'utf_8', errors = 'strict'), format = 'PNG')
+                memory.close()
+
+                self._driver._log.effect(effect = 'element shoot')
+
+            else:
+                memory = StringIO.StringIO(buf = '')
+##                memory.write(s = self._driver._driver.get_screenshot_as_png())
+                memory.write(s = self._driver._driver.get_screenshot_as_base64().decode(encoding = 'base64_codec', errors = 'strict'))
+                memory.seek(pos = 0, mode = 0)
+                full_image = PIL.Image.open(fp = memory, mode = 'r')
+
+                self._driver._driver._switch_to.default_content()
+                left = left
+                top = 0 - top
+                right = right
+                bottom = 0 - bottom
+                for i in self._driver._frame:
+                    left += i.location['x']
+                    top += i.location['y']
+                    right += i.location['x']
+                    bottom += i.location['y']
+                    self._driver._driver._switch_to.frame(frame_reference = i)
+
+                left += self._element.location['x']
+                top += self._element.location['y']
+                right += self._element.location['x'] + self._element.size['width']
+                bottom += self._element.location['y'] + self._element.size['height']
+
+                element_image = full_image.crop(box = (left, top, right, bottom))
+                element_image.save(fp = (re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*[.]png)\s*$', string = path, flags = re.IGNORECASE)[0][1]).decode(encoding = 'utf_8', errors = 'strict'), format = 'PNG')
+                memory.close()
+
+                self._driver._log.effect(effect = 'element shoot')
+        except Exception as e:
+            self._driver._log.error(error = e)
+            raise e
+
 
 
 
@@ -1273,13 +1495,13 @@ class Text(object):
 
 class Log(object):
     def __init__(self, path, driver):
-        if not ((type(path) is str) and (len(re.findall(pattern = '^\s*(.+[/\\\])(.*)\s*$', string = path, flags = 0)) == 1) and (len(re.findall(pattern = '^\s*(.+[/\\\])(.*)\s*$', string = path, flags = 0)[0]) == 2) and (len(re.findall(pattern = '^\s*(.+[/\\\])(.*)\s*$', string = path, flags = 0)[0][1].strip()) > 0) and (isinstance(driver, Driver))):
+        if not ((type(path) is str) and (len(re.findall(pattern = '^\s*(.+[/\\\])(.*)\s*$', string = path, flags = 0)) == 1) and (len(re.findall(pattern = '^\s*(.+[/\\\])(.*)\s*$', string = path, flags = 0)[0]) == 2) and (len(re.findall(pattern = '^\s*(.+[/\\\])\s*(.*)\s*$', string = path, flags = 0)[0][1]) > 0) and (isinstance(driver, Driver))):
             raise Exception('pass path/driver as str(log_path)/Driver()!')
 
-        if not os.path.exists(path = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'UTF-8', errors = 'strict')):
-            os.makedirs(name = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'UTF-8', errors = 'strict'), mode = 0777)
+        if not os.path.exists(path = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'utf_8', errors = 'strict')):
+            os.makedirs(name = re.findall(pattern = '^\s*(.+[/\\\]).*$', string = path, flags = 0)[0].decode(encoding = 'utf_8', errors = 'strict'), mode = 0777)
 
-        self._log = open(name = (re.findall(pattern = '^\s*(.+[/\\\])(.*)\s*$', string = path, flags = 0)[0][0] + re.findall(pattern = '^\s*(.+[/\\\])(.*)\s*$', string = path, flags = 0)[0][1].strip()).decode(encoding = 'UTF-8', errors = 'strict'), mode = 'w+', buffering = 0)
+        self._log = open(name = (re.findall(pattern = '^\s*(.+[/\\\])(.*)\s*$', string = path, flags = 0)[0][0] + re.findall(pattern = '^\s*(.+[/\\\])\s*(.*)\s*$', string = path, flags = 0)[0][1]).decode(encoding = 'utf_8', errors = 'strict'), mode = 'w+', buffering = 0)
         self._driver = driver
         self._count = 1
 
@@ -1296,7 +1518,7 @@ class Log(object):
         self._log.write('\n' * 2)
 
     def error(self, error):
-        PIL.ImageGrab.grab(bbox=None).save(fp = (self._log.name + '.' + str(self._count).zfill(7) + '.jpg').encode(encoding = 'UTF-8', errors = 'strict'), format = 'JPEG')
+        PIL.ImageGrab.grab(bbox = None).save(fp = (self._log.name + '.' + str(self._count).zfill(7) + '.png').encode(encoding = 'utf_8', errors = 'strict'), format = 'PNG')
 
 ##        try:
 ##            self._driver._driver.quit()
@@ -1313,7 +1535,7 @@ class Log(object):
         self._log.write('DEF TRACEBACK:')
         self._log.write('\n')
         self._log.writelines(traceback.format_stack(f = None, limit = None))
-        self._log.write('DEF SCREENSHOT:\t' + self._log.name + '.' + str(self._count).zfill(7) + '.jpg')
+        self._log.write('DEF SCREENSHOT:\t' + self._log.name + '.' + str(self._count).zfill(7) + '.png')
         self._log.write('\n' * 2)
         self._count += 1
 
