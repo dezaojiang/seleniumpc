@@ -222,7 +222,7 @@ class Driver(object):
 
             self._driver.close()
             self._driver._switch_to.window(window_name = self._driver.window_handles[-1])
-            del self._frame[:]
+            del self._frame[0::1]
 
             self._log.effect(effect = 'webpage close')
         except Exception as e:
@@ -352,7 +352,7 @@ class Driver(object):
                 try:
                     if len(self._driver.window_handles) > number:
                         self._driver._switch_to.window(window_name = self._driver.window_handles[-1])
-                        del self._frame[:]
+                        del self._frame[0::1]
 
                         self._driver.maximize_window()
                 except selenium.common.exceptions.UnexpectedAlertPresentException:
@@ -361,7 +361,7 @@ class Driver(object):
                     pass
             elif len(self._driver.window_handles) > number:
                 self._driver._switch_to.window(window_name = self._driver.window_handles[-1])
-                del self._frame[:]
+                del self._frame[0::1]
 
             self._log.effect(effect = 'key type')
         except Exception as e:
@@ -459,7 +459,7 @@ class Driver(object):
                 #accept the Alert would not switch Driver back to last window, thus add one more manual step to do the switch action
                 alert.dismiss()
                 self._driver._switch_to.window(window_name = self._driver.window_handles[-1])
-                del self._frame[:]
+                del self._frame[0::1]
 
             self._log.effect(effect = 'alert text = ' + (text if text is not None else 'none'))
 
@@ -532,7 +532,7 @@ class Driver(object):
 
                 self._log.effect(effect = 'download file')
 ##                self._driver._switch_to.window(window_name = self._handle)
-##                del self._frame[:]
+##                del self._frame[0::1]
 
             elif self._name == 'ff':
                 title = '[CLASS:MozillaDialogClass]'
@@ -569,7 +569,7 @@ class Driver(object):
 
                 self._log.effect(effect = 'download file')
 ##                self._driver._switch_to.window(window_name = self._handle)
-##                del self._frame[:]
+##                del self._frame[0::1]
 
             else:
                 title = u'文件下载 - 安全警告'
@@ -620,7 +620,7 @@ class Driver(object):
 ##                    pass
 
             self._driver._switch_to.window(window_name = self._handle)
-            del self._frame[:]
+            del self._frame[0::1]
         except Exception as e:
             self._log.error(error = e)
             raise e
@@ -904,7 +904,7 @@ class Element(object):
                 try:
                     if len(self._element._parent.window_handles) > number:
                         self._element._parent._switch_to.window(window_name = self._element._parent.window_handles[-1])
-                        del self._driver._frame[:]
+                        del self._driver._frame[0::1]
 
                         self._element._parent.maximize_window()
                 #while an Alert is activated, WebDriver.window_handles() would raise UnexpectedAlertPresentException
@@ -917,7 +917,7 @@ class Element(object):
             elif len(self._element._parent.window_handles) > number:
                 #chrome & ff treat HTML prompt and download dialog as normal windows
                 self._element._parent._switch_to.window(window_name = self._element._parent.window_handles[-1])
-                del self._driver._frame[:]
+                del self._driver._frame[0::1]
 
             self._driver._log.effect(effect = 'mouse click = ' + str(count))
         except Exception as e:
@@ -1084,7 +1084,7 @@ class Element(object):
                 try:
                     if len(self._element._parent.window_handles) > number:
                         self._element._parent._switch_to.window(window_name = self._element._parent.window_handles[-1])
-                        del self._driver._frame[:]
+                        del self._driver._frame[0::1]
 
                         self._element._parent.maximize_window()
                 except selenium.common.exceptions.UnexpectedAlertPresentException:
@@ -1093,7 +1093,7 @@ class Element(object):
                     pass
             elif len(self._element._parent.window_handles) > number:
                 self._element._parent._switch_to.window(window_name = self._element._parent.window_handles[-1])
-                del self._driver._frame[:]
+                del self._driver._frame[0::1]
 
             self._driver._log.effect(effect = 'line send')
         except Exception as e:
